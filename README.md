@@ -6,7 +6,7 @@ Working with Rahix's avr-hal to connect a sensor on the Arduino uno board 📡.
 10/08/2020:
 Implemented the sensor and the wheels.
 
-<img src="robot.jpg" width="200" />
+<img src="robot.jpg" width="400" />
 
 TODO:
 - Organise in structs/Rusty style
