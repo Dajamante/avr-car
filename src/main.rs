@@ -11,6 +11,13 @@ use arduino_uno::prelude::*;
 
 // creates the main function
 // attribute macro -> transforms the next as the entry point
+
+fn init() {
+
+}
+
+
+
 #[arduino_uno::entry]
 fn main() -> ! {
     // acquires a singleton of all the peripherals
