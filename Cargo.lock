@@ -3,7 +3,7 @@
 [[package]]
 name = "arduino-uno"
 version = "0.1.0"
-source = "git+https://github.com/Rahix/avr-hal#329ae376e0d2b44f6dfaaae12795d328248968f9"
+source = "git+https://github.com/Rahix/avr-hal#c4c1fe3e1003c8d3d1a53dccc6db11518920d6e4"
 dependencies = [
  "atmega328p-hal",
  "avr-hal-generic",
@@ -12,7 +12,7 @@ dependencies = [
 [[package]]
 name = "atmega328p-hal"
 version = "0.1.0"
-source = "git+https://github.com/Rahix/avr-hal#329ae376e0d2b44f6dfaaae12795d328248968f9"
+source = "git+https://github.com/Rahix/avr-hal#c4c1fe3e1003c8d3d1a53dccc6db11518920d6e4"
 dependencies = [
  "avr-device",
  "avr-hal-generic",
@@ -20,9 +20,9 @@ dependencies = [
 
 [[package]]
 name = "avr-device"
-version = "0.1.1"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aae2bf3f06d3be1f8bea71aa7d26b52ae1fb16e3bad452cc09262ecf8183154b"
+checksum = "504d90bff86ad8ded797130e845915c7b42aa803e274309914ffbe02704e80e0"
 dependencies = [
  "avr-device-macros",
  "bare-metal",
@@ -31,9 +31,9 @@ dependencies = [
 
 [[package]]
 name = "avr-device-macros"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c953188f9bdaa6c9af7d8045025b167aaa821982b428697dc4ddf5816c63917"
+checksum = "76e70e726ad355df910b74b50364336b0522414d51c2b35e66321fd44b3b21a0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -53,8 +53,9 @@ dependencies = [
 [[package]]
 name = "avr-hal-generic"
 version = "0.1.0"
-source = "git+https://github.com/Rahix/avr-hal#329ae376e0d2b44f6dfaaae12795d328248968f9"
+source = "git+https://github.com/Rahix/avr-hal#c4c1fe3e1003c8d3d1a53dccc6db11518920d6e4"
 dependencies = [
+ "avr-device",
  "cfg-if",
  "embedded-hal",
  "nb 0.1.3",
@@ -111,22 +112,9 @@ checksum = "de96540e0ebde571dc55c73d60ef407c653844e6f9a1e2fdbd40c07b9252d812"
 
 [[package]]
 name = "paste"
-version = "0.1.18"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45ca20c77d80be666aef2b45486da86238fabe33e38306bd3118fe4af33fa880"
-dependencies = [
- "paste-impl",
- "proc-macro-hack",
-]
-
-[[package]]
-name = "paste-impl"
-version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d95a7db200b97ef370c8e6de0088252f7e0dfff7d047a28528e47456c0fc98b6"
-dependencies = [
- "proc-macro-hack",
-]
+checksum = "f6ddc8e145de01d9180ac7b78b9676f95a9c2447f6a88b2c2a04702211bc5d71"
 
 [[package]]
 name = "proc-macro-hack"
