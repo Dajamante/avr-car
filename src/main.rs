@@ -70,7 +70,7 @@ fn main() -> ! {
     // crate named void
     led.set_high().void_unwrap();
 
-    loop {
+    'outer: loop {
         //https://docs.rs/avr-device/0.2.1/avr_device/atmega328p/tc1/tcnt1/type.W.html
         // no special methods, means use bits
         // click on the W or R
@@ -83,15 +83,36 @@ fn main() -> ! {
         delay.delay_us(10u16);
         trig.set_low().void_unwrap();
 
-        while echo.is_low().void_unwrap() {}
+        while echo.is_low().void_unwrap() {
+            // if the timer is full exit this loop
+            // if we don't receive an echo pulse
+            if timer1.tcnt1.read().bits()>=50000{
+                //reset to the beginning
+                // if nothing is detected
+                ufmt::uwriteln!(&mut serial, "Nothing was detected and jump to outer loop.\r").void_unwrap();
+                continue 'outer;
+            }
+        }
+        //restarting the timer
+        timer1.tcnt1.write(|w| unsafe { w.bits(0) });
+
+        // wait for the echo to get low again
+        while echo.is_high().void_unwrap(){}
 
         // 1 timer count == 4 us
-        let value = timer1.tcnt1.read().bits() / 250;
-        //while timer1.tcnt1.read().bits() < 50000 {}
+        // * 4 to get the value in microsecs
+        // /58 to get the distance in cm
+        // 1 count == 4 us, so we visualise that its 4us
+        // we have a value in us
+        let value = (timer1.tcnt1.read().bits() * 4) / 58;
+
+        // this loop waited for 200 ms
+        // we need to wait 100 ms as per docs (that recommend 60 ms)
+        while timer1.tcnt1.read().bits() < 25000 {}
 
         // check stuff on the screen screen /dev/tty.usbserial-14440 57600
         // interrupt the screen CTRL A + K
-        ufmt::uwriteln!(&mut serial, "Hello {} ms!\r", value).void_unwrap();
+        ufmt::uwriteln!(&mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
     }
 }
 
