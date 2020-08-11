@@ -41,6 +41,17 @@ pub fn turn_righ(
     delay.delay_ms(500 as u16);
     right_forw.set_low().void_unwrap();
 }
+pub fn stop(
+    left_forw: &mut arduino_uno::hal::port::portd::PD4<port::mode::Output>,
+    left_back: &mut arduino_uno::hal::port::portd::PD5<port::mode::Output>,
+    right_forw: &mut arduino_uno::hal::port::portd::PD6<port::mode::Output>,
+    right_back: &mut arduino_uno::hal::port::portd::PD7<port::mode::Output>,
+) {
+    left_back.set_low().void_unwrap();
+    right_back.set_low().void_unwrap();
+    left_forw.set_low().void_unwrap();
+    right_forw.set_low().void_unwrap();
+}
 
 pub fn turn_left(
     left_forw: &mut arduino_uno::hal::port::portd::PD4<port::mode::Output>,
