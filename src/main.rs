@@ -1,20 +1,17 @@
-// lib std adds a layer to build the usual functions
-
 #![no_std]
 // don't do standard make for main
 #![no_main]
 
 // Pull in the panic handler from panic-halt
 extern crate panic_halt;
-
 use arduino_uno::prelude::*;
 
-// creates the main function
-// attribute macro -> transforms the next as the entry point
+use crate::motors::{go_backward, go_forward, turn_left};
+
+mod motors;// lib std adds a layer to build the usual functions
 
 #[arduino_uno::entry]
 fn main() -> ! {
-
     let dp = arduino_uno::Peripherals::take().unwrap();
 
     let mut delay = arduino_uno::Delay::new();
@@ -33,20 +30,20 @@ fn main() -> ! {
 
     let mut trig = pins.d12.into_output(&mut pins.ddr);
     // floating input by default
-    let mut echo = pins.d11;
-
-    //wheels are input
+    let echo = pins.d11;
     let mut left_wheel_forward = pins.d4.into_output(&mut pins.ddr);
     let mut left_wheel_backward = pins.d5.into_output(&mut pins.ddr);
     let mut right_wheel_forward = pins.d6.into_output(&mut pins.ddr);
     let mut right_wheel_backward = pins.d7.into_output(&mut pins.ddr);
 
-    'outer: loop {
 
-        left_wheel_forward.set_high().void_unwrap();
-        right_wheel_forward.set_high().void_unwrap();
-        left_wheel_backward.set_low().void_unwrap();
-        right_wheel_backward.set_low().void_unwrap();
+    'outer: loop {
+        go_forward(
+            &mut left_wheel_forward,
+            &mut left_wheel_backward,
+            &mut right_wheel_forward,
+            &mut right_wheel_backward
+        );
 
         timer1.tcnt1.write(|w| unsafe { w.bits(0) });
         // warning that I don't use the result --> void_unwrap
@@ -55,9 +52,7 @@ fn main() -> ! {
         trig.set_low().void_unwrap();
 
         while echo.is_low().void_unwrap() {
-
             if timer1.tcnt1.read().bits() >= 50000 {
-
                 ufmt::uwriteln!(&mut serial, "Nothing was detected and jump to outer loop.\r").void_unwrap();
                 continue 'outer;
             }
@@ -76,23 +71,56 @@ fn main() -> ! {
             loop {
                 ufmt::uwriteln!(&mut serial, "Going backwards.\r").void_unwrap();
                 delay.delay_ms(2000 as u16);
-                left_wheel_forward.set_low().void_unwrap();
-                right_wheel_forward.set_low().void_unwrap();
-                left_wheel_backward.set_high().void_unwrap();
-                right_wheel_backward.set_high().void_unwrap();
-                delay.delay_ms(2000 as u16);
+                go_backward(
+                    &mut left_wheel_forward,
+                    &mut left_wheel_backward,
+                    &mut right_wheel_forward,
+                    &mut right_wheel_backward
+                );
+                ufmt::uwriteln!(&mut serial, "Turning left.\r").void_unwrap();
+                turn_left(
+                    &mut left_wheel_forward,
+                    &mut left_wheel_backward,
+                    &mut right_wheel_forward,
+                    &mut right_wheel_backward
+                );
+                ufmt::uwriteln!(&mut serial, "Just turned left.\r").void_unwrap();
                 ufmt::uwriteln!(&mut serial, "Continue to outer loop.\r").void_unwrap();
                 continue 'outer;
             }
         }
 
-
-// this loop waited for 200 ms
-// we need to wait 100 ms as per docs (that recommend 60 ms)
         while timer1.tcnt1.read().bits() < 25000 {}
 
-// check stuff on the screen screen /dev/tty.usbserial-14440 57600
-// interrupt the screen CTRL A + K
         ufmt::uwriteln!(&mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
     }
 }
+
+/*
+type PinD4 = arduino_uno::port::portd::PD4<Output>;
+type PinD5 = arduino_uno::port::portd::PD5<Output>;
+type PinD6 = arduino_uno::port::portd::PD6<Output>;
+type PinD7 = arduino_uno::port::portd::PD7<Output>;
+
+
+fn init_wheels() ->(PinD4, PinD5, PinD6, PinD7){
+    //wheels are input
+    let mut left_wheel_forward = pins.d4.into_output(&mut pins.ddr);
+    let mut left_wheel_backward = pins.d5.into_output(&mut pins.ddr);
+    let mut right_wheel_forward = pins.d6.into_output(&mut pins.ddr);
+    let mut right_wheel_backward = pins.d7.into_output(&mut pins.ddr);
+
+    (left_wheel_forward, left_wheel_backward, right_wheel_forward, right_wheel_backward)
+}
+
+#[arduino_uno::entry]
+fn main() -> ! {
+
+    struct Resources {
+        left_wheel_forward: PinD4,
+        left_wheel_backward: PinD5,
+        right_wheel_forward: PinD6,
+        right_wheel_backward: PinD7,
+    } = init_wheels();
+
+ */
