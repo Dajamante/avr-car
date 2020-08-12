@@ -4,9 +4,10 @@
 
 // Pull in the panic handler from panic-halt
 extern crate panic_halt;
+
 use arduino_uno::prelude::*;
 
-use crate::motors::{go_backward, go_forward, turn_left};
+use crate::motors::{go_backward, go_forward, stop, turn_left};
 
 mod motors;// lib std adds a layer to build the usual functions
 
@@ -42,7 +43,7 @@ fn main() -> ! {
             &mut left_wheel_forward,
             &mut left_wheel_backward,
             &mut right_wheel_forward,
-            &mut right_wheel_backward
+            &mut right_wheel_backward,
         );
 
         timer1.tcnt1.write(|w| unsafe { w.bits(0) });
@@ -70,19 +71,25 @@ fn main() -> ! {
         if value < 10 {
             loop {
                 ufmt::uwriteln!(&mut serial, "Going backwards.\r").void_unwrap();
-                delay.delay_ms(2000 as u16);
+                
                 go_backward(
                     &mut left_wheel_forward,
                     &mut left_wheel_backward,
                     &mut right_wheel_forward,
-                    &mut right_wheel_backward
+                    &mut right_wheel_backward,
+                );
+                stop(
+                    &mut left_wheel_forward,
+                    &mut left_wheel_backward,
+                    &mut right_wheel_forward,
+                    &mut right_wheel_backward,
                 );
                 ufmt::uwriteln!(&mut serial, "Turning left.\r").void_unwrap();
                 turn_left(
                     &mut left_wheel_forward,
                     &mut left_wheel_backward,
                     &mut right_wheel_forward,
-                    &mut right_wheel_backward
+                    &mut right_wheel_backward,
                 );
                 ufmt::uwriteln!(&mut serial, "Just turned left.\r").void_unwrap();
                 ufmt::uwriteln!(&mut serial, "Continue to outer loop.\r").void_unwrap();
