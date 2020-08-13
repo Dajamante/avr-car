@@ -7,7 +7,7 @@ extern crate panic_halt;
 
 use arduino_uno::prelude::*;
 
-use crate::motors::{go_backward, go_forward, stop, turn_left};
+use crate::motors::{go_backward, go_forward, stop, turn_right};
 
 mod motors;// lib std adds a layer to build the usual functions
 
@@ -32,19 +32,15 @@ fn main() -> ! {
     let mut trig = pins.d12.into_output(&mut pins.ddr);
     // floating input by default
     let echo = pins.d11;
-    let mut left_wheel_forward = pins.d4.into_output(&mut pins.ddr);
-    let mut left_wheel_backward = pins.d5.into_output(&mut pins.ddr);
-    let mut right_wheel_forward = pins.d6.into_output(&mut pins.ddr);
-    let mut right_wheel_backward = pins.d7.into_output(&mut pins.ddr);
+    let left_forw = pins.d4.into_output(&mut pins.ddr).downgrade();
+    let left_back = pins.d5.into_output(&mut pins.ddr).downgrade();
+    let right_forw = pins.d6.into_output(&mut pins.ddr).downgrade();
+    let right_back = pins.d7.into_output(&mut pins.ddr).downgrade();
+    let mut wheels = [left_forw, left_back, right_forw, right_back];
 
 
     'outer: loop {
-        go_forward(
-            &mut left_wheel_forward,
-            &mut left_wheel_backward,
-            &mut right_wheel_forward,
-            &mut right_wheel_backward,
-        );
+        go_forward(&mut wheels);
 
         timer1.tcnt1.write(|w| unsafe { w.bits(0) });
         // warning that I don't use the result --> void_unwrap
@@ -53,7 +49,8 @@ fn main() -> ! {
         trig.set_low().void_unwrap();
 
         while echo.is_low().void_unwrap() {
-            if timer1.tcnt1.read().bits() >= 50000 {
+            // more than 200 ms ( = 50000)
+            if timer1.tcnt1.read().bits() >= 65000 {
                 ufmt::uwriteln!(&mut serial, "Nothing was detected and jump to outer loop.\r").void_unwrap();
                 continue 'outer;
             }
@@ -65,33 +62,16 @@ fn main() -> ! {
         // wait for the echo to get low again
         while echo.is_high().void_unwrap() {}
 
-
         let value = (timer1.tcnt1.read().bits() * 4) / 58;
 
         if value < 10 {
             loop {
                 ufmt::uwriteln!(&mut serial, "Going backwards.\r").void_unwrap();
-                
-                go_backward(
-                    &mut left_wheel_forward,
-                    &mut left_wheel_backward,
-                    &mut right_wheel_forward,
-                    &mut right_wheel_backward,
-                );
-                stop(
-                    &mut left_wheel_forward,
-                    &mut left_wheel_backward,
-                    &mut right_wheel_forward,
-                    &mut right_wheel_backward,
-                );
-                ufmt::uwriteln!(&mut serial, "Turning left.\r").void_unwrap();
-                turn_left(
-                    &mut left_wheel_forward,
-                    &mut left_wheel_backward,
-                    &mut right_wheel_forward,
-                    &mut right_wheel_backward,
-                );
-                ufmt::uwriteln!(&mut serial, "Just turned left.\r").void_unwrap();
+                go_backward(&mut wheels);
+                stop(&mut wheels);
+                ufmt::uwriteln!(&mut serial, "Turning right.\r").void_unwrap();
+                turn_right(&mut wheels);
+                ufmt::uwriteln!(&mut serial, "Just turned right.\r").void_unwrap();
                 ufmt::uwriteln!(&mut serial, "Continue to outer loop.\r").void_unwrap();
                 continue 'outer;
             }
