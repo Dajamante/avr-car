@@ -4,13 +4,15 @@
 
 // Pull in the panic handler from panic-halt
 extern crate panic_halt;
-
 use arduino_uno::prelude::*;
 
-use crate::motors::{go_backward, go_forward, stop, turn_right, turn_left};
+use crate::motors::{go_backward, go_forward, stop, turn_left, turn_right};
+use crate::sensor::return_distance;
 
-mod motors;// lib std adds a layer to build the usual functions
+mod motors;
+// lib std adds a layer to build the usual functions
 mod sensor;
+
 #[arduino_uno::entry]
 fn main() -> ! {
     let dp = arduino_uno::Peripherals::take().unwrap();
@@ -26,7 +28,7 @@ fn main() -> ! {
         57600,
     );
 
-    let timer1 = dp.TC1; //make the timer avaible
+    let mut timer1 = dp.TC1; //make the timer avaible
     timer1.tccr1b.write(|w| w.cs1().prescale_64());
 
     let timer2 = dp.TC2;
@@ -34,8 +36,9 @@ fn main() -> ! {
     timer2.tccr2a.write(|w| w.wgm2().pwm_fast().com2b().match_clear());
 
     let mut trig = pins.d12.into_output(&mut pins.ddr);
-// floating input by default
-    let echo = pins.d11;
+    // floating input by default
+    let mut echo = pins.d11;
+
     let mut _servo = pins.d3.into_output(&mut pins.ddr);
 
     let left_forw = pins.d4.into_output(&mut pins.ddr).downgrade();
@@ -46,67 +49,38 @@ fn main() -> ! {
 
 
     'outer: loop {
-        ufmt::uwriteln!( & mut serial, "Centering my head.\r").void_unwrap();
         timer2.ocr2b.write(|x| unsafe { x.bits(20) });
-        delay.delay_ms(2000u16);
         go_forward(&mut wheels);
+        let value = return_distance(&mut trig, &mut echo, &mut timer1);
+        ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
 
-        timer1.tcnt1.write(|w| unsafe { w.bits(0) });
-        // warning that I don't use the result --> void_unwrap
-        trig.set_high().void_unwrap();
-        delay.delay_us(10u16);
-        trig.set_low().void_unwrap();
-
-        while echo.is_low().void_unwrap() {
-            // more than 200 ms ( = 50000)
-            if timer1.tcnt1.read().bits() >= 50000 {
-                ufmt::uwriteln!( & mut serial, "Nothing was detected and jump to outer loop.\r").void_unwrap();
-                continue 'outer;
-            }
-        }
-
-        //restarting the timer
-        timer1.tcnt1.write(|w| unsafe { w.bits(0) });
-
-        // wait for the echo to get low again
-        while echo.is_high().void_unwrap() {}
-
-        let value = (timer1.tcnt1.read().bits() * 4) / 58;
         if value < 10 {
             loop {
-                ufmt::uwriteln!( & mut serial, "Stop.\r").void_unwrap();
                 stop(&mut wheels);
 
-                ufmt::uwriteln!( & mut serial, "Looking right.\r").void_unwrap();
                 timer2.ocr2b.write(|x| unsafe { x.bits(10) });
-                let mut value_right = (timer1.tcnt1.read().bits() * 4) / 58;
-                ufmt::uwriteln!( & mut serial, "On the right, we are {} cms away from target!\r", value_right).void_unwrap();
+                let value_right = return_distance(&mut trig, &mut echo, &mut timer1);
+                ufmt::uwriteln!( & mut serial, "On right, we are {} cms away from target!\r", value).void_unwrap();
 
                 delay.delay_ms(500u16);
 
-                ufmt::uwriteln!( & mut serial, "Looking left.\r").void_unwrap();
                 timer2.ocr2b.write(|x| unsafe { x.bits(30) });
-                let mut value_left = (timer1.tcnt1.read().bits() * 4) / 58;
-                ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value_left).void_unwrap();
+                let value_left = return_distance(&mut trig, &mut echo, &mut timer1);
+                ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value).void_unwrap();
 
-                delay.delay_ms(2000u16);
+                delay.delay_ms(500u16);
 
                 if (value_left > value_right) && value_left > 20 {
-                    ufmt::uwriteln!( & mut serial, "Turning left.\r").void_unwrap();
                     turn_left(&mut wheels);
-                    ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
-                    ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+
                 } else if (value_right > value_left) && value_right > 20 {
-                    ufmt::uwriteln!( & mut serial, "Turning right.\r").void_unwrap();
                     turn_right(&mut wheels);
-                    ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
-                    ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+
                 } else {
-                    ufmt::uwriteln!( & mut serial, "Awkward turn.\r").void_unwrap();
                     go_backward(&mut wheels);
+                    delay.delay_ms(500u16);
                     turn_right(&mut wheels);
-                    ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
-                    ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+
                 }
                 continue 'outer;
             }
