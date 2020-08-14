@@ -7,10 +7,6 @@ extern crate panic_halt;
 
 use arduino_uno::prelude::*;
 
-use crate::motors::{go_backward, go_forward, stop, turn_right};
-
-mod motors;// lib std adds a layer to build the usual functions
-
 #[arduino_uno::entry]
 fn main() -> ! {
     let dp = arduino_uno::Peripherals::take().unwrap();
@@ -28,20 +24,41 @@ fn main() -> ! {
 
     let timer1 = dp.TC1; //make the timer avaible
     timer1.tccr1b.write(|w| w.cs1().prescale_64());
+    // Waveform Generation Mode bits (WGM): these control the overall mode of the timer.
+    // (These bits are split between TCCRnA and TCCRnB.)
+    // Clock Select bits (CS): these control the clock prescaler
+
+    let mut timer2 = dp.TC2;
+
+    //16e6/128 == 62500
+    //https://sites.google.com/site/qeewiki/books/avr-guide/pwm-on-the-atmega328
+
+    // same as  cs2().bits(0b100),
+    timer2.tccr2b.write(|w| w.cs2().prescale_1024());
+    // Both fast PWM and phase correct PWM have an additional mode that gives control over the output frequency.
+    // In this mode, the timer counts from 0 to OCRA (the value of output compare register A),
+    //16000000 Hz (clock speed)/1024 (prescale)= 15625 Hz
+    //15625 Hz /50 Hz (required servo frequenzy)= 312 (OCR1A top limit 4999)
+    /*
+    then you need to select Fast PWM mode for the WGM (Waveform Generation Mode)
+    and then you need to set the COM (Compare Output Mode)
+    for your output (either COM2A or COM2B) to MATCH_CLEAR
+
+    you call .fast_pwm() on that handle to write the bits
+     to the value representing FAST_PWM mode. as you're now done with the WGM2 field,
+     you get back the w handle representing the whole register
+     */
+    timer2.tccr2a.write(|w| w.wgm2().pwm_fast().com2b().match_clear());
+
+    //  Setting the COM2A bits and COM2B bits to 10 provides non-inverted PWM for outputs A and B. needed?
+
 
     let mut trig = pins.d12.into_output(&mut pins.ddr);
     // floating input by default
     let echo = pins.d11;
-    let left_forw = pins.d4.into_output(&mut pins.ddr).downgrade();
-    let left_back = pins.d5.into_output(&mut pins.ddr).downgrade();
-    let right_forw = pins.d6.into_output(&mut pins.ddr).downgrade();
-    let right_back = pins.d7.into_output(&mut pins.ddr).downgrade();
-    let mut wheels = [left_forw, left_back, right_forw, right_back];
-
+    let mut servo = pins.d3.into_output(&mut pins.ddr);
 
     'outer: loop {
-        go_forward(&mut wheels);
-
         timer1.tcnt1.write(|w| unsafe { w.bits(0) });
         // warning that I don't use the result --> void_unwrap
         trig.set_high().void_unwrap();
@@ -65,16 +82,10 @@ fn main() -> ! {
         let value = (timer1.tcnt1.read().bits() * 4) / 58;
 
         if value < 10 {
-            loop {
-                ufmt::uwriteln!(&mut serial, "Going backwards.\r").void_unwrap();
-                go_backward(&mut wheels);
-                stop(&mut wheels);
-                ufmt::uwriteln!(&mut serial, "Turning right.\r").void_unwrap();
-                turn_right(&mut wheels);
-                ufmt::uwriteln!(&mut serial, "Just turned right.\r").void_unwrap();
-                ufmt::uwriteln!(&mut serial, "Continue to outer loop.\r").void_unwrap();
-                continue 'outer;
-            }
+            //((16e6 clock/1024 preschaling)/50 hz as required by servo) * 1.5ms/20ms
+            timer2.ocr2b.write(|x| unsafe { x.bits(23) });
+            delay.delay_ms(1000u16);
+
         }
 
         while timer1.tcnt1.read().bits() < 25000 {}
@@ -82,32 +93,3 @@ fn main() -> ! {
         ufmt::uwriteln!(&mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
     }
 }
-
-/*
-type PinD4 = arduino_uno::port::portd::PD4<Output>;
-type PinD5 = arduino_uno::port::portd::PD5<Output>;
-type PinD6 = arduino_uno::port::portd::PD6<Output>;
-type PinD7 = arduino_uno::port::portd::PD7<Output>;
-
-
-fn init_wheels() ->(PinD4, PinD5, PinD6, PinD7){
-    //wheels are input
-    let mut left_wheel_forward = pins.d4.into_output(&mut pins.ddr);
-    let mut left_wheel_backward = pins.d5.into_output(&mut pins.ddr);
-    let mut right_wheel_forward = pins.d6.into_output(&mut pins.ddr);
-    let mut right_wheel_backward = pins.d7.into_output(&mut pins.ddr);
-
-    (left_wheel_forward, left_wheel_backward, right_wheel_forward, right_wheel_backward)
-}
-
-#[arduino_uno::entry]
-fn main() -> ! {
-
-    struct Resources {
-        left_wheel_forward: PinD4,
-        left_wheel_backward: PinD5,
-        right_wheel_forward: PinD6,
-        right_wheel_backward: PinD7,
-    } = init_wheels();
-
- */
