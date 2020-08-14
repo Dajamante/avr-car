@@ -7,10 +7,10 @@ extern crate panic_halt;
 
 use arduino_uno::prelude::*;
 
-use crate::motors::{go_backward, go_forward, stop, turn_right};
+use crate::motors::{go_backward, go_forward, stop, turn_right, turn_left};
 
 mod motors;// lib std adds a layer to build the usual functions
-
+mod sensor;
 #[arduino_uno::entry]
 fn main() -> ! {
     let dp = arduino_uno::Peripherals::take().unwrap();
@@ -58,8 +58,8 @@ fn main() -> ! {
         trig.set_low().void_unwrap();
 
         while echo.is_low().void_unwrap() {
-        // more than 200 ms ( = 50000)
-            if timer1.tcnt1.read().bits() >= 65000 {
+            // more than 200 ms ( = 50000)
+            if timer1.tcnt1.read().bits() >= 50000 {
                 ufmt::uwriteln!( & mut serial, "Nothing was detected and jump to outer loop.\r").void_unwrap();
                 continue 'outer;
             }
@@ -72,34 +72,48 @@ fn main() -> ! {
         while echo.is_high().void_unwrap() {}
 
         let value = (timer1.tcnt1.read().bits() * 4) / 58;
-
         if value < 10 {
             loop {
+                ufmt::uwriteln!( & mut serial, "Stop.\r").void_unwrap();
+                stop(&mut wheels);
+
                 ufmt::uwriteln!( & mut serial, "Looking right.\r").void_unwrap();
                 timer2.ocr2b.write(|x| unsafe { x.bits(10) });
-                delay.delay_ms(2000u16);
+                let mut value_right = (timer1.tcnt1.read().bits() * 4) / 58;
+                ufmt::uwriteln!( & mut serial, "On the right, we are {} cms away from target!\r", value_right).void_unwrap();
+
+                delay.delay_ms(500u16);
 
                 ufmt::uwriteln!( & mut serial, "Looking left.\r").void_unwrap();
                 timer2.ocr2b.write(|x| unsafe { x.bits(30) });
+                let mut value_left = (timer1.tcnt1.read().bits() * 4) / 58;
+                ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value_left).void_unwrap();
+
                 delay.delay_ms(2000u16);
 
-                ufmt::uwriteln!( & mut serial, "Centering my head.\r").void_unwrap();
-                timer2.ocr2b.write(|x| unsafe { x.bits(20) });
-                delay.delay_ms(2000u16);
-
-                ufmt::uwriteln!( & mut serial, "Going backwards.\r").void_unwrap();
-                go_backward(&mut wheels);
-                stop(&mut wheels);
-                ufmt::uwriteln!( & mut serial, "Turning right.\r").void_unwrap();
-                turn_right(&mut wheels);
-                ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
-                ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+                if (value_left > value_right) && value_left > 20 {
+                    ufmt::uwriteln!( & mut serial, "Turning left.\r").void_unwrap();
+                    turn_left(&mut wheels);
+                    ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
+                    ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+                } else if (value_right > value_left) && value_right > 20 {
+                    ufmt::uwriteln!( & mut serial, "Turning right.\r").void_unwrap();
+                    turn_right(&mut wheels);
+                    ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
+                    ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+                } else {
+                    ufmt::uwriteln!( & mut serial, "Awkward turn.\r").void_unwrap();
+                    go_backward(&mut wheels);
+                    turn_right(&mut wheels);
+                    ufmt::uwriteln!( & mut serial, "Just turned right.\r").void_unwrap();
+                    ufmt::uwriteln!( & mut serial, "Continue to outer loop.\r").void_unwrap();
+                }
                 continue 'outer;
             }
         }
-
         while timer1.tcnt1.read().bits() < 25000 {}
 
         ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
     }
 }
+

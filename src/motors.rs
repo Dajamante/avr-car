@@ -24,6 +24,13 @@ pub fn turn_right(wheels: &mut [arduino_uno::hal::port::Pin<arduino_uno::hal::po
     delay.delay_ms(500 as u16);
 
 }
+pub fn turn_left(wheels: &mut [arduino_uno::hal::port::Pin<arduino_uno::hal::port::mode::Output>; 4]) {
+    stop(wheels);
+    let mut delay = arduino_uno::Delay::new();
+    wheels[2].set_high().void_unwrap();
+    delay.delay_ms(500 as u16);
+
+}
 
 pub fn stop(wheels: &mut [arduino_uno::hal::port::Pin<arduino_uno::hal::port::mode::Output>; 4]) {
     wheels[0].set_low().void_unwrap();
