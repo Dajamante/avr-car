@@ -25,13 +25,15 @@ The circuit diagram is the same as [this project](https://create.arduino.cc/proj
 ## Get started:
 
 1. Install avrdude.
-2. Modify the executable flash_it.sh which contains those lines:
+2. Modify the executable flash_it.sh. It contains those lines:
+```
+cargo +nightly build
 
-- cargo +nightly build
-- flash on the board with: (with your usb serial and your own elf file)
+flash on the board with: (with your usb serial and your own elf file)
+
   avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
-- screen /dev/tty.usbserial-14430 57600, if you want to show on the console, if not this can be deleted.
-
+screen /dev/tty.usbserial-14430 57600, if you want to show on the console, if not this can be deleted.
+```
 3. you can now run ./flash_it.sh and have the car running (hopefully).
 
 TODO:
@@ -40,7 +42,7 @@ TODO:
 
 - Continue to organise in structs/Rusty style (the wheels could be passed in a single struct)
 
-- ~~Implement PWM for servo motors~
+- ~~Implement PWM for servo motors~¨
 
 - It would not hurt to re-solder the cables (some done)
 
