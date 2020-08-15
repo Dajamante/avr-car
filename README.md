@@ -11,6 +11,15 @@ several times on occasions.
 The circuit diagram is the same as [this project](https://create.arduino.cc/projecthub/hda-robotics/project-1-2wd-obstacle-avoiding-robot-390ef8).
 <img src="circuit_diagram.jpg" width="400" />
 
+## Stuff:
+
+- Arduino UNO or generic using ATmega328p
+- [Servo SG90](https://components101.com/servo-motor-basics-pinout-datasheet)
+- [2 DC motors 12V](http://robotechshop.com/shop/robotics/motors/dc-motors/yellow-gearbox-motor/?v=f78a77f631d2)
+- [Motordriver with H-bridge L298N](https://howtomechatronics.com/tutorials/arduino/arduino-dc-motor-control-tutorial-l298n-pwm-h-bridge/)
+- [Sensor HC-SR04](https://www.amazon.co.uk/dp/B07TKVPPHF/ref=as_li_ss_tl?_encoding=UTF8&psc=1&linkCode=sl1&tag=howtomuk-21&linkId=8faa13eaeab406a33ae606e005699aaf&language=en_GB)
+- cables, jumpers, breadboards...
+
 ## Get started:
 
 1. Install avrdude.
