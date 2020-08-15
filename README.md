@@ -42,7 +42,7 @@ TODO:
 
 - Continue to organise in structs/Rusty style (the wheels could be passed in a single struct)
 
-- ~~Implement PWM for servo motors~¨
+- ~~Implement PWM for servo motors~~
 
 - It would not hurt to re-solder the cables (some done)
 
