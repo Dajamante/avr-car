@@ -9,7 +9,9 @@ The car is rolling but the board is making a peeping sound and needs to be resta
 several times on occasions.
 
 The circuit diagram is the same as [this project](https://create.arduino.cc/projecthub/hda-robotics/project-1-2wd-obstacle-avoiding-robot-390ef8).
+<div>
 <img src="circuit_diagram.jpg" width="400" />
+  </div>
 
 ## Stuff:
 
