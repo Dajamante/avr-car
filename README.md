@@ -36,10 +36,11 @@ The circuit diagram is the same as [this project](https://create.arduino.cc/proj
 
 TODO:
 
-- find the cause of the bug
+- find the cause of the bug 🐛!
+
 - Continue to organise in structs/Rusty style (the wheels could be passed in a single struct)
 
-✅ Implement PWM for servo motors
+- ~~Implement PWM for servo motors~
 
 - It would not hurt to re-solder the cables (some done)
 
