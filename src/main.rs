@@ -1,3 +1,12 @@
+//! ## Classical obstacle avoiding robot with Rust
+//! This project takes and Arduino classic and tries to port it to
+//! Rust as a beginner project.
+//! It uses avr-hal crate for abstraction.
+//! For hardware it uses a simple HC-SR04 sensor, an L298N motor driver and a SG90
+//! servo motor (details in the Readme).
+//! The sensor is reading distance every > 100ms and the robot should take appropriate
+//! action if an obstacle is detected.
+
 // Macros to inform rust that the project will not use
 // main and the standard library (lib std adds a layer to build the usual functions.)
 #![no_std]
@@ -5,17 +14,22 @@
 
 // Pull in the panic handler from panic-halt
 extern crate panic_halt;
+
+use arduino_uno::hal::port::mode::Floating;
 use arduino_uno::prelude::*;
 
 use crate::motors::{go_backward, go_forward, stop, turn_left, turn_right};
 use crate::sensor::return_distance;
-use arduino_uno::hal::port::mode::Floating;
 
 mod motors;
 mod sensor;
 
+const SERVO_CENTER: u8 = 20;
+const SERVO_RIGHT: u8 = 10;
+const SERVO_LEFT: u8 = 30;
+const WAIT_BETWEEN_ACTIONS: u16 = 1000u16;
 
-pub struct SensorUnit{
+pub struct SensorUnit {
     trig: arduino_uno::hal::port::portb::PB4<arduino_uno::hal::port::mode::Output>,
     echo: arduino_uno::hal::port::portb::PB3<arduino_uno::hal::port::mode::Input<Floating>>,
     timer: arduino_uno::atmega328p::TC1,
@@ -72,6 +86,12 @@ fn main() -> ! {
     // setting the waveform generation mode bits WGM to 011 selects fast PWM.
     // Setting the COM2B bits to 10 provides non-inverted PWM for outputs A and B.
     // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
+
+    // There's three things that determine the PWM frequency: timer frequency, prescaler, and period.
+    // Let's say your microcontroller is running at 16MHz and that is also the timer base frequency.
+    // The timer will count at that base frequency divided by the prescaler
+    // and you get one PWM cycle every period counts of the scaled frequency
+    // so the PWM frequency = BaseFreq / (Prescaler * Period) and the duty cycle can be 0 to period-1
     timer2.tccr2a.write(|w| w.wgm2().pwm_fast().com2b().match_clear());
 
     // We do not use pin 13, because it is also connected to an onboard LED marked "L"
@@ -84,7 +104,7 @@ fn main() -> ! {
 
     // servo is best set as a struct for clarity, it will be send to
     // into a function in a module return distance
-    let mut sensor_unit = SensorUnit{
+    let mut sensor_unit = SensorUnit {
         trig,
         echo,
         timer: timer1,
@@ -108,7 +128,7 @@ fn main() -> ! {
     // the car is always going forward (and printing distance to console if connected to screen)
     // until it meets an obstacle.
     'outer: loop {
-        timer2.ocr2b.write(|x| unsafe { x.bits(20) });
+        timer2.ocr2b.write(|x| unsafe { x.bits(SERVO_CENTER) });
         go_forward(&mut wheels);
 
         let value = return_distance(&mut sensor_unit);
@@ -118,29 +138,26 @@ fn main() -> ! {
             loop {
                 stop(&mut wheels);
 
-                timer2.ocr2b.write(|x| unsafe { x.bits(10) });
+                timer2.ocr2b.write(|x| unsafe { x.bits(SERVO_RIGHT) });
                 let value_right = return_distance(&mut sensor_unit);
                 ufmt::uwriteln!( & mut serial, "On right, we are {} cms away from target!\r", value).void_unwrap();
 
-                delay.delay_ms(1000u16);
+                delay.delay_ms(WAIT_BETWEEN_ACTIONS);
 
-                timer2.ocr2b.write(|x| unsafe { x.bits(30) });
+                timer2.ocr2b.write(|x| unsafe { x.bits(SERVO_LEFT) });
                 let value_left = return_distance(&mut sensor_unit);
                 ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value).void_unwrap();
 
-                delay.delay_ms(1000u16);
+                delay.delay_ms(WAIT_BETWEEN_ACTIONS);
 
                 if (value_left > value_right) && value_left > 20 {
                     turn_left(&mut wheels);
-
                 } else if (value_right > value_left) && value_right > 20 {
                     turn_right(&mut wheels);
-
                 } else {
                     go_backward(&mut wheels);
-                    delay.delay_ms(1000u16);
+                    delay.delay_ms(WAIT_BETWEEN_ACTIONS);
                     turn_right(&mut wheels);
-
                 }
                 continue 'outer;
             }

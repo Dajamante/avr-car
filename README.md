@@ -44,4 +44,10 @@ TODO:
 
 - It would not hurt to re-solder the cables (some done)
 
+- move Sensor unit in sensor:: namespace
+
+- destructure wheels
+
+- make a `set e` for the flash.sh file
+
 <img src="here_comes_tiger_3.gif" width="400" />

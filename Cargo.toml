@@ -1,9 +1,15 @@
 [package]
-name = "avr-example"
+name = "avr-robot-car"
 version = "0.1.0"
 authors = ["dajamante <aimaiga2@gmail.com>"]
 edition = "2018"
-
+description = "Implementation of a classic arduino obstacle avoiding robot."
+homepage = "https://github.com/Dajamante/avr-car"
+repository = "https://github.com/Dajamante/avr-car"
+readme = "README.md"
+keywords = ["educational project", "beginner", "arduino", "atmega328p", "robot"]
+categories = ["Embedded development", "No standard library"]
+license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

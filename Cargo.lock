@@ -41,16 +41,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "avr-example"
-version = "0.1.0"
-dependencies = [
- "arduino-uno",
- "nb 1.0.0",
- "panic-halt",
- "ufmt",
-]
-
-[[package]]
 name = "avr-hal-generic"
 version = "0.1.0"
 source = "git+https://github.com/Rahix/avr-hal#c4c1fe3e1003c8d3d1a53dccc6db11518920d6e4"
@@ -62,6 +52,16 @@ dependencies = [
  "paste",
  "ufmt",
  "void",
+]
+
+[[package]]
+name = "avr-robot-car"
+version = "0.1.0"
+dependencies = [
+ "arduino-uno",
+ "nb 1.0.0",
+ "panic-halt",
+ "ufmt",
 ]
 
 [[package]]
