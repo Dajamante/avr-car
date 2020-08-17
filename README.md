@@ -27,29 +27,34 @@ The circuit diagram is the same as [this project](https://create.arduino.cc/proj
 1. Install avrdude.
 2. Modify the executable flash_it.sh. It contains those lines:
 ```
-cargo +nightly build
+# set -e is a bash command that will prevent your board to be flashed if an error is returned by cargo.
+set -e cargo +nightly build
 
-flash on the board with: (with your usb serial and your own elf file)
-
-  avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
+# flash on the board with avrdude (with your usb serial and your own elf file)
+# get your USB with ls /dev/tty* | grep usb
+avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
 screen /dev/tty.usbserial-14430 57600, if you want to show on the console, if not this can be deleted.
+
+# see the console with: 
+# 57600 is the baud rate
+screen /dev/tty.usbserial-14430 57600
 ```
 3. you can now run ./flash_it.sh and have the car running (hopefully).
 
-TODO:
+TODO:~
 
 - find the cause of the bug 🐛!
 
-- Continue to organise in structs/Rusty style (the wheels could be passed in a single struct)
+- ~~Continue to organise in structs/Rusty style (the wheels could be passed in a single struct)~~
 
 - ~~Implement PWM for servo motors~~
 
 - It would not hurt to re-solder the cables (some done)
 
-- move Sensor unit in sensor:: namespace
+- ~~move Sensor unit in sensor:: namespace~~
 
-- destructure wheels
+- ~~destructure wheels~~
 
-- make a `set e` for the flash.sh file
+- ~~make a `set e` for the flash.sh file~~
 
 <img src="here_comes_tiger_3.gif" width="400" />

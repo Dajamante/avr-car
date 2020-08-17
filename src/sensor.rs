@@ -4,9 +4,17 @@
 
 use arduino_uno::prelude::*;
 use arduino_uno::hal::port::mode::{Floating};
-use crate::SensorUnit;
 
 const TRIGGER_UP_TIME: u16 = 10u16;
+
+/// struct sensor_unit is instantiated in main, as it needs
+/// pins and timer.
+pub struct SensorUnit {
+    pub trig: arduino_uno::hal::port::portb::PB4<arduino_uno::hal::port::mode::Output>,
+    pub echo: arduino_uno::hal::port::portb::PB3<arduino_uno::hal::port::mode::Input<Floating>>,
+    pub timer: arduino_uno::atmega328p::TC1,
+}
+
 pub fn return_distance(sensor_unit: &mut SensorUnit) -> u16 {
     let mut delay = arduino_uno::Delay::new();
     // we are writing to the tcnt1 register:

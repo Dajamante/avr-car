@@ -20,7 +20,7 @@ use arduino_uno::prelude::*;
 
 use crate::motors::{go_backward, go_forward, stop, turn_left, turn_right};
 use crate::sensor::return_distance;
-
+use crate::sensor::SensorUnit;
 mod motors;
 mod sensor;
 
@@ -29,11 +29,6 @@ const SERVO_RIGHT: u8 = 10;
 const SERVO_LEFT: u8 = 30;
 const WAIT_BETWEEN_ACTIONS: u16 = 1000u16;
 
-pub struct SensorUnit {
-    trig: arduino_uno::hal::port::portb::PB4<arduino_uno::hal::port::mode::Output>,
-    echo: arduino_uno::hal::port::portb::PB3<arduino_uno::hal::port::mode::Input<Floating>>,
-    timer: arduino_uno::atmega328p::TC1,
-}
 
 // creates the main function
 // attribute macro -> transforms the next as the entry point
