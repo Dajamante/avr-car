@@ -31,12 +31,16 @@ The circuit diagram is the same as [this project](https://create.arduino.cc/proj
 set -e cargo +nightly build
 
 # flash on the board with avrdude (with your usb serial and your own elf file)
+# -p is "partno": the only mandatory option, tells avrdude what type of MCU is connected to the programmer
+# -c gives the programmer id from a list (luckily arduino is super common)
 # get your USB with ls /dev/tty* | grep usb
+# -U : perform a memory operation
+
 avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
 screen /dev/tty.usbserial-14430 57600, if you want to show on the console, if not this can be deleted.
 
-# see the console with: 
-# 57600 is the baud rate
+# This command allows to see the console (57600 is the baud rate,
+ other established baud rates as 9600 are possible, but then you would need to change the program)
 screen /dev/tty.usbserial-14430 57600
 ```
 3. you can now run ./flash_it.sh and have the car running (hopefully).
@@ -55,6 +59,6 @@ TODO:~
 
 - ~~destructure wheels~~
 
-- ~~make a `set e` for the flash.sh file~~
+- ~make a `set e` for the flash.sh file~~
 
 <img src="here_comes_tiger_3.gif" width="400" />

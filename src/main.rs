@@ -19,27 +19,25 @@ use arduino_uno::hal::port::mode::Floating;
 use arduino_uno::prelude::*;
 
 use crate::motors::{go_backward, go_forward, stop, turn_left, turn_right};
-use crate::sensor::return_distance;
-use crate::sensor::SensorUnit;
+use crate::sensor::{return_distance, SensorUnit};
+use crate::servo::ServoUnit;
+use arduino_uno::pwm;
+
 mod motors;
 mod sensor;
+mod servo;
 
-const SERVO_CENTER: u8 = 20;
-const SERVO_RIGHT: u8 = 10;
-const SERVO_LEFT: u8 = 30;
 const WAIT_BETWEEN_ACTIONS: u16 = 1000u16;
-
+const MINIMAL_DISTANCE: u16 = 10u16;
 
 // creates the main function
 // attribute macro -> transforms the next as the entry point
-
 // "!" is a never type. It informs nothing should return from the main function.
 #[arduino_uno::entry]
 fn main() -> ! {
     // we acquire first a singleton of all the peripherals (everything inside the MCU)
     // more information on raw registers abstraction here:
     // https://docs.rs/avr-device/0.2.1/avr_device/atmega328p/struct.Peripherals.html
-
     let dp = arduino_uno::Peripherals::take().unwrap();
 
     let mut delay = arduino_uno::Delay::new();
@@ -69,45 +67,30 @@ fn main() -> ! {
         57600,
     );
 
-    // making the timer available, with a prescaling
-    let timer1 = dp.TC1;
-    // initialisation :  we write over and set prescaler to 64
+    // initialisation of timer 1 :  we write over and set prescaler to 64
     // (1/(16e6/64)) * 2^16 (size of register) ~> takes 262 ms for a cycle
+    // timer1 is shared with the sensor unit
+    let timer1 = dp.TC1;
     timer1.tccr1b.write(|w| w.cs1().prescale_64());
 
-    let timer2 = dp.TC2;
-    // timer2 is used for pwm. pwm accept u8 values so the prescaling is chosen at 1024
-    timer2.tccr2b.write(|w| w.cs2().prescale_1024());
-    // setting the waveform generation mode bits WGM to 011 selects fast PWM.
-    // Setting the COM2B bits to 10 provides non-inverted PWM for outputs A and B.
-    // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
+    let mut timer2 = pwm::Timer2Pwm::new(dp.TC2, pwm::Prescaler::Prescale1024);
 
-    // There's three things that determine the PWM frequency: timer frequency, prescaler, and period.
-    // Let's say your microcontroller is running at 16MHz and that is also the timer base frequency.
-    // The timer will count at that base frequency divided by the prescaler
-    // and you get one PWM cycle every period counts of the scaled frequency
-    // so the PWM frequency = BaseFreq / (Prescaler * Period) and the duty cycle can be 0 to period-1
-    timer2.tccr2a.write(|w| w.wgm2().pwm_fast().com2b().match_clear());
-
-    // We do not use pin 13, because it is also connected to an onboard LED marked "L"
-    // ownership issues: we are moving the pins.d13 into first, the function into_output
-    // second, into led. It needs the ddr register for configuration
-    // (DDRx are used to configure the respective PORT as output/input)
-    let trig = pins.d12.into_output(&mut pins.ddr);
-    // floating input is set by default so we can configure echo without ddr
-    let echo = pins.d11;
+    let mut servo_unit = ServoUnit{
+        servo: pins.d3.into_output(&mut pins.ddr).into_pwm(&mut timer2),
+    };
 
     // servo is best set as a struct for clarity, it will be send to
     // into a function in a module return distance
     let mut sensor_unit = SensorUnit {
-        trig,
-        echo,
+        // We do not use pin 13, because it is also connected to an onboard LED marked "L"
+        // ownership issues: we are moving the pins.d13 into first, the function into_output
+        // second, into led. It needs the ddr register for configuration
+        // (DDRx are used to configure the respective PORT as output/input)
+        trig: pins.d12.into_output(&mut pins.ddr),
+        // floating input is set by default so we can configure echo without ddr
+        echo: pins.d11,
         timer: timer1,
     };
-
-    // pin d3 is hardwired with timer2.
-    // so it will be a natural output. But the variable servo itself is never used.
-    let mut _servo = pins.d3.into_output(&mut pins.ddr);
 
     // downgrading the pins allow to put them in an array and simplify functions:
     // according to docs : Downgrade this pin into a type that is generic over all pins.
@@ -119,27 +102,27 @@ fn main() -> ! {
     // we have now mutable wheels that can be sent to motor functions
     let mut wheels = [left_forw, left_back, right_forw, right_back];
 
-
     // the car is always going forward (and printing distance to console if connected to screen)
     // until it meets an obstacle.
     'outer: loop {
-        timer2.ocr2b.write(|x| unsafe { x.bits(SERVO_CENTER) });
+        servo_unit.look_front();
         go_forward(&mut wheels);
 
         let value = return_distance(&mut sensor_unit);
         ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
 
-        if value < 10 {
+        if value < MINIMAL_DISTANCE {
+            // the 'obstacle_avoidance loop. I would like to name it, but the compiler will complain :)
             loop {
                 stop(&mut wheels);
 
-                timer2.ocr2b.write(|x| unsafe { x.bits(SERVO_RIGHT) });
+                servo_unit.look_right();
                 let value_right = return_distance(&mut sensor_unit);
                 ufmt::uwriteln!( & mut serial, "On right, we are {} cms away from target!\r", value).void_unwrap();
 
                 delay.delay_ms(WAIT_BETWEEN_ACTIONS);
 
-                timer2.ocr2b.write(|x| unsafe { x.bits(SERVO_LEFT) });
+                servo_unit.look_left();
                 let value_left = return_distance(&mut sensor_unit);
                 ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value).void_unwrap();
 

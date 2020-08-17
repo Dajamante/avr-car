@@ -18,6 +18,7 @@ license = "MIT OR Apache-2.0"
 panic-halt = "0.2.0"
 ufmt = "0.1.0"
 nb = "1.0.0"
+embedded-hal = "0.2.3"
 
 [dependencies.arduino-uno]
 git = "https://github.com/Rahix/avr-hal"
