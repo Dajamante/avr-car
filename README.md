@@ -59,6 +59,6 @@ TODO:~
 
 - ~~destructure wheels~~
 
-- ~make a `set e` for the flash.sh file~~
+- ~~make a `set e` for the flash.sh file~~
 
 <img src="here_comes_tiger_3.gif" width="400" />
