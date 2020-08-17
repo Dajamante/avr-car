@@ -24,26 +24,26 @@ The circuit diagram is the same as [this project](https://create.arduino.cc/proj
 
 ## Get started:
 
-1. Install avrdude.
+1. Install avrdude. It's the utility to write in the ROM(read only memory) or the EEPROM (electrically erasable programmable read-only memory) of AVR microcontrollers. atmega329p, on the arduino uno is from this familly.
+
+
 2. Modify the executable flash_it.sh. It contains those lines:
-```
-# set -e is a bash command that will prevent your board to be flashed if an error is returned by cargo.
-set -e cargo +nightly build
+ ```
+ set -e cargo +nightly build
 
-# flash on the board with avrdude (with your usb serial and your own elf file)
-# -p is "partno": the only mandatory option, tells avrdude what type of MCU is connected to the programmer
-# -c gives the programmer id from a list (luckily arduino is super common)
-# get your USB with ls /dev/tty* | grep usb
-# -U : perform a memory operation
+ avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
 
-avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
-screen /dev/tty.usbserial-14430 57600, if you want to show on the console, if not this can be deleted.
+ screen /dev/tty.usbserial-14430 57600
+ ```
+ ### Details:
+ `set -e` is a bash command that will prevent your board to be flashed if an error is returned by cargo.
+ You flash on the board with avrdude with your usb serial and your own elf file. You can get your USB with `s /dev/tty* | grep usb`.
+ * `-p` is "partno": the only mandatory option, tells avrdude what type of MCU is connected to the programmer
+ * `-c` gives the programmer id from a list (luckily arduino is super common)
+ * `-U` : perform a memory operation
+ The screen command allows to see the console. `57600` is the baud rate, other established baud rates as `9600 are possible, but then you would need to change the program)
 
-# This command allows to see the console (57600 is the baud rate,
- other established baud rates as 9600 are possible, but then you would need to change the program)
-screen /dev/tty.usbserial-14430 57600
-```
-3. you can now run ./flash_it.sh and have the car running (hopefully).
+<span>3.</span>  you can now run ./flash_it.sh and have the car running (hopefully).
 
 TODO:~
 
@@ -59,6 +59,6 @@ TODO:~
 
 - ~~destructure wheels~~
 
-- ~~make a `set e` for the flash.sh file~~
+- ~make a `set e` for the flash.sh file~~
 
 <img src="here_comes_tiger_3.gif" width="400" />
