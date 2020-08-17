@@ -3,7 +3,7 @@
 //! It unpacks the wheel pins in an array.
 
 use arduino_uno::prelude::*;
-const TURNING_TIME: u16 = 500u16;
+const TURNING_TIME: u16 = 700u16;
 
 /// The mutable wheels array is destructured for easier manipulation.
 pub fn go_forward<>(wheels: &mut [arduino_uno::hal::port::Pin<arduino_uno::hal::port::mode::Output>; 4]) {

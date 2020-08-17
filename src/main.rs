@@ -75,12 +75,14 @@ fn main() -> ! {
 
     let mut timer2 = pwm::Timer2Pwm::new(dp.TC2, pwm::Prescaler::Prescale1024);
 
-    let mut servo_unit = ServoUnit{
-        servo: pins.d3.into_output(&mut pins.ddr).into_pwm(&mut timer2),
+    let mut pd3 = pins.d3.into_output(&mut pins.ddr).into_pwm(&mut timer2);
+    pd3.enable();
+        let mut servo_unit = ServoUnit{
+        servo: pd3,
     };
 
     // servo is best set as a struct for clarity, it will be send to
-    // into a function in a module return distance
+
     let mut sensor_unit = SensorUnit {
         // We do not use pin 13, because it is also connected to an onboard LED marked "L"
         // ownership issues: we are moving the pins.d13 into first, the function into_output
