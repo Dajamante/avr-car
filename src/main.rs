@@ -29,7 +29,7 @@ mod servo;
 
 const WAIT_BETWEEN_ACTIONS: u16 = 1000u16;
 const MINIMAL_DISTANCE: u16 = 10u16;
-
+const ACCEPTABLE_DISTANCE: u16 = 10u16;
 // creates the main function
 // attribute macro -> transforms the next as the entry point
 // "!" is a never type. It informs nothing should return from the main function.
@@ -128,9 +128,9 @@ fn main() -> ! {
 
                 delay.delay_ms(WAIT_BETWEEN_ACTIONS);
 
-                if (value_left > value_right) && value_left > 20 {
+                if (value_left > value_right) && value_left > ACCEPTABLE_DISTANCE {
                     turn_left(&mut wheels);
-                } else if (value_right > value_left) && value_right > 20 {
+                } else if (value_right > value_left) && value_right > ACCEPTABLE_DISTANCE {
                     turn_right(&mut wheels);
                 } else {
                     go_backward(&mut wheels);
