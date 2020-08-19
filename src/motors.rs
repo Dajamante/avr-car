@@ -7,6 +7,7 @@ const TURNING_TIME: u16 = 700u16;
 
 /// The mutable wheels array is destructured for easier manipulation.
 pub fn go_forward<>(wheels: &mut [arduino_uno::hal::port::Pin<arduino_uno::hal::port::mode::Output>; 4]) {
+    // Be careful here with the order of unpacking. In my case, pin 4 is connected to left forward, 5 to left backwards, etc
     let [left_forw, left_back, right_forw, right_back] = wheels;
     left_forw.set_high().void_unwrap();
     right_forw.set_high().void_unwrap();
