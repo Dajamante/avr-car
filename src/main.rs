@@ -17,11 +17,11 @@ extern crate panic_halt;
 
 use arduino_uno::hal::port::mode::Floating;
 use arduino_uno::prelude::*;
-use arduino_uno::pwm;
 
 use crate::motors::{go_backward, go_forward, stop, turn_left, turn_right};
 use crate::sensor::{return_distance, SensorUnit};
 use crate::servo::ServoUnit;
+use arduino_uno::pwm;
 
 mod motors;
 mod sensor;
@@ -30,7 +30,6 @@ mod servo;
 const WAIT_BETWEEN_ACTIONS: u16 = 1000u16;
 const MINIMAL_DISTANCE: u16 = 10u16;
 const ACCEPTABLE_DISTANCE: u16 = 10u16;
-
 // creates the main function
 // attribute macro -> transforms the next as the entry point
 // "!" is a never type. It informs nothing should return from the main function.
@@ -78,7 +77,7 @@ fn main() -> ! {
 
     let mut pd3 = pins.d3.into_output(&mut pins.ddr).into_pwm(&mut timer2);
     pd3.enable();
-    let mut servo_unit = ServoUnit {
+        let mut servo_unit = ServoUnit{
         servo: pd3,
     };
 
@@ -111,54 +110,44 @@ fn main() -> ! {
         servo_unit.look_front();
         go_forward(&mut wheels);
 
+        let value = return_distance(&mut sensor_unit);
+        ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
 
-        if let Ok(value) = return_distance(&mut sensor_unit) {
+        if value < MINIMAL_DISTANCE {
+            // the 'obstacle_avoidance loop. I would like to name it, but the compiler will complain :)
+            loop {
+                stop(&mut wheels);
 
-            ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
+                servo_unit.look_right();
+                let value_right = return_distance(&mut sensor_unit);
+                ufmt::uwriteln!( & mut serial, "On right, we are {} cms away from target!\r", value).void_unwrap();
 
-            if value < MINIMAL_DISTANCE {
-                let mut right:u16 = 0;
-                let mut left:u16 = 0;
-                'look_right_left: loop {
-                    stop(&mut wheels);
+                delay.delay_ms(WAIT_BETWEEN_ACTIONS);
 
-                    servo_unit.look_right();
-                    if let Ok(value_right) = return_distance(&mut sensor_unit){
-                        ufmt::uwriteln!( & mut serial, "On right, we are {} cms away from target!\r", value_right).void_unwrap();
-                        right = value_right;
-                    } else { continue 'look_right_left}
+                servo_unit.look_left();
+                let value_left = return_distance(&mut sensor_unit);
+                ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value).void_unwrap();
 
+                delay.delay_ms(WAIT_BETWEEN_ACTIONS);
+
+                if (value_left > value_right) && value_left > ACCEPTABLE_DISTANCE {
+                    turn_left(&mut wheels);
+                } else if (value_right > value_left) && value_right > ACCEPTABLE_DISTANCE {
+                    turn_right(&mut wheels);
+                } else {
+                    go_backward(&mut wheels);
                     delay.delay_ms(WAIT_BETWEEN_ACTIONS);
-
-                    servo_unit.look_left();
-                    if let Ok(value_left) = return_distance(&mut sensor_unit){
-                        ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value_left).void_unwrap();
-                        left = value_left;
-                    }else{continue 'look_right_left}
-
-                    delay.delay_ms(WAIT_BETWEEN_ACTIONS);
-
-                    if (left > right) && left > ACCEPTABLE_DISTANCE {
-                        turn_left(&mut wheels);
-                    } else if (right > left) && right > ACCEPTABLE_DISTANCE {
-                        turn_right(&mut wheels);
-                    } else {
-                        go_backward(&mut wheels);
-                        delay.delay_ms(WAIT_BETWEEN_ACTIONS);
-                        turn_right(&mut wheels);
-                    }
-
+                    turn_right(&mut wheels);
                 }
+                continue 'outer;
             }
-            // the sensor needs to wait approximately 60 ms between two waves.
-            // we ensure that by waiting while the register reaches 25000
-            // one count == 4 us, and 4us*0.000004 == 100 ms
-            while sensor_unit.timer.tcnt1.read().bits() < 25000 {}
-
-            ufmt::uwriteln!( & mut serial, "I am on botom");
-        }else{
-            continue 'outer;
         }
+        // the sensor needs to wait approximately 60 ms between two waves.
+        // we ensure that by waiting while the register reaches 25000
+        // one count == 4 us, and 4us*0.000004 == 100 ms
+        while sensor_unit.timer.tcnt1.read().bits() < 25000 {}
+
+        // I honestly forgot why I print that twice...
+        ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
     }
 }
-

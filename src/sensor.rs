@@ -1,3 +1,4 @@
+
 //! ### The sensor Module
 //! The sensor module takes a SensorUnit value struct with a trigger, an echo
 //! and a timer. As per HC-SR04 documentation, the trigger needs to be up 10 μs
@@ -15,10 +16,7 @@ pub struct SensorUnit {
     pub timer: arduino_uno::atmega328p::TC1,
 }
 
-pub struct MeasurementError;
-
-
-pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementError> {
+pub fn return_distance(sensor_unit: &mut SensorUnit) -> u16 {
     let mut delay = arduino_uno::Delay::new();
     // we are writing to the tcnt1 register:
     // https://docs.rs/avr-device/0.2.1/avr_device/atmega328p/tc1/tcnt1/type.W.html
@@ -39,9 +37,12 @@ pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementE
     while sensor_unit.echo.is_low().void_unwrap() {
         // if more than 200 ms ( = 50000) we might have not detected anything and can continue.
         if sensor_unit.timer.tcnt1.read().bits() >= 65000 {
-            return Err(MeasurementError)
+            return 63500;
         }
     }
+
+    // restarting the timer by writing 0 bits to it
+    sensor_unit.timer.tcnt1.write(|w| unsafe { w.bits(0) });
 
     // waiting for the echo to get low again
     while sensor_unit.echo.is_high().void_unwrap() {}
@@ -50,8 +51,9 @@ pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementE
     // 1 timer count == 4 us so * 4 to get a value in microsecs
     // we divide by 58 to get the distance in cm, since (34000 cm/s * 1e-6 us time)/2 (back and forth measurement)
     // == 0.017 more or less 1/58
-    let value = (sensor_unit.timer.tcnt1.read().bits() * 4) / 20000;
+    let value = (sensor_unit.timer.tcnt1.read().bits() * 4) / 58;
 
     // !! AVR only natively supports 8 and 16 bit integers, so *do not* return bigger
-    return Ok(value);
+    u16::from(value)
+
 }
