@@ -15,7 +15,9 @@ pub struct SensorUnit {
     pub timer: arduino_uno::atmega328p::TC1,
 }
 
-pub fn return_distance(sensor_unit: &mut SensorUnit) -> u16 {
+pub struct MeasurementError;
+
+pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementError> {
     let mut delay = arduino_uno::Delay::new();
     // we are writing to the tcnt1 register:
     // https://docs.rs/avr-device/0.2.1/avr_device/atmega328p/tc1/tcnt1/type.W.html
@@ -33,15 +35,13 @@ pub fn return_distance(sensor_unit: &mut SensorUnit) -> u16 {
     delay.delay_us(TRIGGER_UP_TIME);
     sensor_unit.trig.set_low().void_unwrap();
 
-    'outer: while sensor_unit.echo.is_low().void_unwrap() {
+
+    while sensor_unit.echo.is_low().void_unwrap() {
         // if more than 200 ms ( = 50000) we might have not detected anything and can continue.
         if sensor_unit.timer.tcnt1.read().bits() >= 65000 {
-            continue 'outer;
+            return Err(MeasurementError)
         }
     }
-
-    // restarting the timer by writing 0 bits to it
-    sensor_unit.timer.tcnt1.write(|w| unsafe { w.bits(0) });
 
     // waiting for the echo to get low again
     while sensor_unit.echo.is_high().void_unwrap() {}
@@ -53,6 +53,6 @@ pub fn return_distance(sensor_unit: &mut SensorUnit) -> u16 {
     let value = (sensor_unit.timer.tcnt1.read().bits() * 4) / 58;
 
     // !! AVR only natively supports 8 and 16 bit integers, so *do not* return bigger
-    u16::from(value)
+    Ok(value)
 
 }
