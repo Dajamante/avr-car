@@ -22,7 +22,8 @@ The circuit diagram is the same as [this project](https://create.arduino.cc/proj
 - [Motordriver with H-bridge L298N](https://howtomechatronics.com/tutorials/arduino/arduino-dc-motor-control-tutorial-l298n-pwm-h-bridge/)
 - [Sensor HC-SR04](https://www.amazon.co.uk/dp/B07TKVPPHF/ref=as_li_ss_tl?_encoding=UTF8&psc=1&linkCode=sl1&tag=howtomuk-21&linkId=8faa13eaeab406a33ae606e005699aaf&language=en_GB)
 - cables, jumpers, breadboards...
-- You can also order a kit from Banggood or Ebay. Just search _2WD obstacle avoiding robot kit_, there are many, many, many suppliers.
+- **If you are not used to/have no access to cheap electronic parts**: 🛍🛒 You can also order a kit from Banggood or Ebay. Just search _2WD obstacle avoiding robot kit_, there are many, many, many suppliers. Example: [Ebay UK](https://www.ebay.co.uk/itm/Smart-Car-Motor-Robot-Chassis-Ultrasonic-Module-Battery-Box-Kit-2WD-For-Arduino/174299467397?hash=item28950ece85:g:gy8AAOSwRh9e0P8z), [Banggood](https://www.banggood.com/Geekcreit-DIY-L298N-2WD-Ultrasonic-Smart-Tracking-Moteur-Robot-Car-Kit-for-Arduino-products-that-work-with-official-Arduino-boards-p-1155139.html?rmmds=search&cur_warehouse=CN)... 
+- Also, there are great tutorials [on assembling those robots](https://www.youtube.com/watch?v=BH33F-Hi_2M&list=PLN9tittQZUlRJCdE17eORJ7ZGVhGnH77k&index=3)!
 
 ## Get started:
 
