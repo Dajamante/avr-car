@@ -111,19 +111,19 @@ fn main() -> ! {
         servo_unit.look_front();
         go_forward(&mut wheels);
 
-        if let Ok(value) = return_distance(&mut sensor_unit) {
-            ufmt::uwriteln!( & mut serial, "I am here");
-            ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
-            let mut right:u16;
-            let mut left:u16;
-            if value < MINIMAL_DISTANCE {
 
+        if let Ok(value) = return_distance(&mut sensor_unit) {
+
+            ufmt::uwriteln!( & mut serial, "Hello, we are {} cms away from target!\r", value).void_unwrap();
+
+            if value < MINIMAL_DISTANCE {
+                let mut right:u16 = 0;
+                let mut left:u16 = 0;
                 'look_right_left: loop {
                     stop(&mut wheels);
 
                     servo_unit.look_right();
                     if let Ok(value_right) = return_distance(&mut sensor_unit){
-                        ufmt::uwriteln!( & mut serial, "I am right");
                         ufmt::uwriteln!( & mut serial, "On right, we are {} cms away from target!\r", value_right).void_unwrap();
                         right = value_right;
                     } else { continue 'look_right_left}
@@ -132,12 +132,9 @@ fn main() -> ! {
 
                     servo_unit.look_left();
                     if let Ok(value_left) = return_distance(&mut sensor_unit){
-                        ufmt::uwriteln!( & mut serial, "I am left");
                         ufmt::uwriteln!( & mut serial, "On left, we are {} cms away from target!\r", value_left).void_unwrap();
                         left = value_left;
-                    }else{
-                        continue 'look_right_left
-                    }
+                    }else{continue 'look_right_left}
 
                     delay.delay_ms(WAIT_BETWEEN_ACTIONS);
 

@@ -32,7 +32,7 @@ I will just go through the important parts in the different modules.
 
 #### main.rs
 
-This is a Rust nightly, no-std Rust project, which means it will not use the standard library. You need to indicate to your program the entry point.`#[arduino_uno::entry]`. The standard library is not available on embedded platforms at all.
+This is a Rust nightly, no-std Rust project, which means it will not use the standard library. You need to indicate to your program the entry point.`#[arduino_uno::entry]`. The standard library is not available on embedded platforms at all because it require because it requires an operating system.
 
 Then with avr-hal, you will access to all peripherals of your MCU:
 

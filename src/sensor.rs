@@ -17,6 +17,7 @@ pub struct SensorUnit {
 
 pub struct MeasurementError;
 
+
 pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementError> {
     let mut delay = arduino_uno::Delay::new();
     // we are writing to the tcnt1 register:
@@ -35,7 +36,6 @@ pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementE
     delay.delay_us(TRIGGER_UP_TIME);
     sensor_unit.trig.set_low().void_unwrap();
 
-
     while sensor_unit.echo.is_low().void_unwrap() {
         // if more than 200 ms ( = 50000) we might have not detected anything and can continue.
         if sensor_unit.timer.tcnt1.read().bits() >= 65000 {
@@ -50,9 +50,8 @@ pub fn return_distance(sensor_unit: &mut SensorUnit) -> Result<u16, MeasurementE
     // 1 timer count == 4 us so * 4 to get a value in microsecs
     // we divide by 58 to get the distance in cm, since (34000 cm/s * 1e-6 us time)/2 (back and forth measurement)
     // == 0.017 more or less 1/58
-    let value = (sensor_unit.timer.tcnt1.read().bits() * 4) / 58;
+    let value = (sensor_unit.timer.tcnt1.read().bits() * 4) / 20000;
 
     // !! AVR only natively supports 8 and 16 bit integers, so *do not* return bigger
-    Ok(value)
-
+    return Ok(value);
 }
