@@ -1,8 +1,10 @@
+## Classical Arduino Robot with avr-hal: the making of!
+
 As a newly converted Rustacean, I wanted to port one of my favorite projects to explore the language.
 
 The project is an obstacle avoiding robot. Very easy in Arduino and it allows to get a better feel for the Rust language by implementing structures.
 
-It would DEFINITELY not have been possible to write this tutorial without the help of Rahix, who created avr-hal, and the Rust Embedded working group.
+_This article and this car would DEFINITELY not have been possible without the help of Rahix, [who created avr-hal](https://github.com/Rahix/avr-hal), and the [Rust Embedded working group](https://github.com/rust-embedded/wg)._ Lots of Love to them 💌. Also, [Rust forum](the https://users.rust-lang.org/) is home to many amazing people who will also help you.
 
 ### Using AVR-hal 📦
 
@@ -12,9 +14,7 @@ Choose your board, and go run one of the 😉💡-[blinkin led super easy exampl
 
 ### Using avrdude
 
-You will need to [install avr-gcc](https://github.com/osx-cross/homebrew-avr) to compile Rust code for AVR.
-
-Then you will need avrdude 👨🏽‍🔧 to program the MCU, that is, loading the compiled program into on-chip flash memory.
+You will need to [install avr-gcc](https://github.com/osx-cross/homebrew-avr) to compile Rust code for AVR. Then you will need avrdude 👨🏽‍🔧 to program the MCU, that is, loading the compiled program into on-chip flash memory.
 
 Check if you have the command line developer tools with : ´xcode-select --install`Run and install the lattest version of avr-gcc with:`brew tap osx-cross/avr``brew install avr-gcc`
 
@@ -24,9 +24,9 @@ You will also need [Rust nightly](https://doc.rust-lang.org/1.2.0/book/nightly-r
 
 ### Get in the car!
 
-I listed all the hardware you will need in my repository, but really, any generic sensors (distance), servo and motors will do.
+I listed all the hardware you will need in my repository, but really, any generic electronic you have (distance sensor, servo and motors) will do. If it's a first project, go with a kit available on Ebay, Banggood or Amazon (linked in my repo).
 
-You can communicate with your board via avrdude with a script (also details also in the repo:). I also commented the hell out of my code - and if you have questions, just reach out! What I don't know, we will figure out together. Worry not, by together I mean, you, me, and [the Rust Embedded working group](https://matrix.to/#/#rust-embedded:matrix.org).
+You can communicate with your board via avrdude with a script (also details also in the repo:). I also commented the hell out of the code - and if you have questions, just reach out! What I don't know, we will figure out together with the Rust Embedded group if necessary!
 
 I will just go through the important parts in the different modules.
 
@@ -130,23 +130,35 @@ $$ \frac{1.5ms}{16ms} * 2^{8} ≈ 24 counts $$
 
 For the sensor, I made a sensor-unit struct that is filled in main. Here this is only a question of setting the trigger high, and low again.
 We start it by writing to its timer counter register (tcnt1):
+
+```
 sensor_unit.timer.tcnt1.write(|w| unsafe { w.bits(0) });
+```
 
 We then set it high for 10 us.
+
+```
 sensor_unit.trig.set_high().void_unwrap();
 delay.delay_us(TRIGGER_UP_TIME);
 sensor_unit.trig.set_low().void_unwrap();
+```
 
 We make a sanity check to continue if the sensor does not detect anything:
+
+```
 'outer: while sensor_unit.echo.is_low().void_unwrap() {
 // if more than 200 ms ( = 50000) we might have not detected anything and can continue.
-if sensor_unit.timer.tcnt1.read().bits() >= 65000 {
-continue 'outer;
+   if sensor_unit.timer.tcnt1.read().bits() >= 65000 {
+      continue 'outer;
+   }
 }
-}
+```
 
 and last, we measure the echo by waiting for it to go low again.
+
+```
 while sensor_unit.echo.is_high().void_unwrap() {}
+```
 
 That's it.
 I would recommend to pay special attention to avr-hal instructions for starting your project. To make sure your whole system is grounded as per the schematics. For the rest, good luck and you can always come and find us if you need anything!
