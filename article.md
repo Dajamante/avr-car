@@ -1,10 +1,12 @@
+         
 ## Classical Arduino Robot with avr-hal: the making of!
 
+  
 As a newly converted Rustacean, I wanted to port one of my favorite projects to explore the language.
 
 The project is an obstacle avoiding robot. Very easy in Arduino and it allows to get a better feel for the Rust language by implementing structures.
 
-_This article and this car would DEFINITELY not have been possible without the help of Rahix, [who created avr-hal](https://github.com/Rahix/avr-hal), and the [Rust Embedded working group](https://github.com/rust-embedded/wg)._ Lots of Love to them 💌. Also, [Rust forum](the https://users.rust-lang.org/) is home to many amazing people who will also help you.
+_This article and this car would DEFINITELY not have been possible without the help of Rahix, [who created avr-hal](https://github.com/Rahix/avr-hal), and the [Rust Embedded working group](https://github.com/rust-embedded/wg)._ Lots of Love to them 💌. Also, [the Rust forum](https://users.rust-lang.org/) is home to many amazing people who will also help you.
 
 ### Using AVR-hal 📦
 
@@ -50,13 +52,14 @@ The serial is needed only for testing your vehicle on your overloaded table.
 
 You will need two timers. The first one (timer1) will be used to work with the sensor unit. The timer needs to be prescaled because the internal clock is 16Mhz. You probably remember from middle school that period and frequency are interdependent
 
-$$ T = \frac{1}{f}$$
+<img src="https://render.githubusercontent.com/render/math?math=\Large T\=\frac{1}{f}">
 
-$$ T = \frac{1}{16e6} (number of counts) * 2^{16} (size of the timer register) = 0.00409s $$
+<img src="https://render.githubusercontent.com/render/math?math=\Large T \= \frac{1}{16e6} \text{ (number of counts)} \times 2^{16} \text{  (size of the timer register)} \= 0.00409s">
 
 that is 4 ms before the timer overflows. That is pretty useless. By prescaling frequency you allow more manageable cycles:
 
-$$ \frac{1}{(16Mhz/64)} ≈ 0.263 s$$
+<img src="https://render.githubusercontent.com/render/math?math=\Large \frac{1}{(\frac{16Mhz}{64})} \text{ ≈ } 0.263 s">
+
 
 It means that after 260 ms the timer will overflow and restart from zero. To read the timer, we just need to read the number of counts it is at.
 For example, to get 100ms, which is a good time to send a new echo wave, we do $$  \frac{100ms}{260ms} * 2^{16} ≈ 25000$$. So when we are at 25000 counts we know that 100 ms have passed.
@@ -111,8 +114,10 @@ Timer2, which is going to be used for the servo motor (the little rotating head)
 
 Please note, that while timer1 is a 16bit counter, timer2 is a 8 bit counter! That means that for our calculation, and according to the datasheet for the servo motor:
 
-$$ \frac{1}{(16Mhz/1024)} * 2^{8} ≈ 0.016s$$
-$$ \frac{1}{(0.016s)} ≈ 61 Hz $$
+<img src="https://render.githubusercontent.com/render/math?math=\Large \frac{1}{(16Mhz/1024)} \times 2^{8} \text{ ≈ }0.016s">
+
+<img src="https://render.githubusercontent.com/render/math?math=\Large  \frac{1}{(0.016s)} \text{ ≈ } 61 Hz">
+
 So, 16 ms, 60 hz approximately.
 
 ```
@@ -124,14 +129,14 @@ let mut pd3 = pins.d3.into_output(&mut pins.ddr).into_pwm(&mut timer2);
 When rotating the motor, we are not reading but writing to a special register OCR (output compare register). But avr-hal protects us from all this low level scariness, and you just write the number of counts you need to rotate your servo right.
 The duty cycle that those servos need are between 1 and 2ms. To center the servo for example, you need:
 
-$$ \frac{1.5ms}{16ms} * 2^{8} ≈ 24 counts $$
+<img src="https://render.githubusercontent.com/render/math?math=\Large \frac{1.5}{16} \text{ms} \times 2^{8} \text{ ≈ } 24 \text{counts}">
 
 ### sensor
 
 For the sensor, I made a sensor-unit struct that is filled in main. Here this is only a question of setting the trigger high, and low again.
 We start it by writing to its timer counter register (tcnt1):
 
-```
+```rust
 sensor_unit.timer.tcnt1.write(|w| unsafe { w.bits(0) });
 ```
 

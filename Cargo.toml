@@ -22,6 +22,7 @@ embedded-hal = "0.2.3"
 
 [dependencies.arduino-uno]
 git = "https://github.com/Rahix/avr-hal"
+rev = "7337cd76cd96f2d27701b137396d94a06d3a501d"
 
 # Configure the build for minimal size
 [profile.dev]
