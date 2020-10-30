@@ -10,8 +10,7 @@ The circuit diagram is below:
 
 ## Stuff:
 
-**If you are not used to/have no access to cheap electronic parts**: 🛍🛒 You can also order a kit from Banggood or Ebay. Just search _2WD obstacle avoiding robot kit_, there are many, many, many suppliers. Example: [Ebay UK](https://www.ebay.co.uk/itm/Smart-Car-Motor-Robot-Chassis-Ultrasonic-Module-Battery-Box-Kit-2WD-For-Arduino/174299467397?hash=item28950ece85:g:gy8AAOSwRh9e0P8z), [Banggood](https://www.banggood.com/Geekcreit-DIY-L298N-2WD-Ultrasonic-Smart-Tracking-Moteur-Robot-Car-Kit-for-Arduino-products-that-work-with-official-Arduino-boards-p-1155139.html?rmmds=search&cur_warehouse=CN)...
-- Also, there are great tutorials [on assembling those robots](https://www.youtube.com/watch?v=BH33F-Hi_2M&list=PLN9tittQZUlRJCdE17eORJ7ZGVhGnH77k&index=3)!
+**If you are not used to/have no access to cheap electronic parts**: 🛍🛒 You can also order a kit from Banggood or Ebay. Just search _2WD obstacle avoiding robot kit_, there are many, many, many suppliers. Example: [Ebay UK](https://www.ebay.co.uk/itm/Smart-Car-Motor-Robot-Chassis-Ultrasonic-Module-Battery-Box-Kit-2WD-For-Arduino/174299467397?hash=item28950ece85:g:gy8AAOSwRh9e0P8z), [Banggood](https://www.banggood.com/Geekcreit-DIY-L298N-2WD-Ultrasonic-Smart-Tracking-Moteur-Robot-Car-Kit-for-Arduino-products-that-work-with-official-Arduino-boards-p-1155139.html?rmmds=search&cur_warehouse=CN)... Also, there are great tutorials [on assembling those robots](https://www.youtube.com/watch?v=BH33F-Hi_2M&list=PLN9tittQZUlRJCdE17eORJ7ZGVhGnH77k&index=3)!
 
 **If you love picking up electronics yourself**:
 - Arduino UNO or Nano, or any clone using ATmega328p
@@ -26,7 +25,7 @@ The circuit diagram is below:
 1. Install avrdude. It's the utility to write in the ROM(read only memory) or the EEPROM (electrically erasable programmable read-only memory) of AVR microcontrollers. atmega328p, on the arduino uno is from this familly.
    When you'll run the file, the executable file will be in target/avr-atmega328p/debug/<name of the project>.elf
 
-1) Modify the executable flash_it.sh if you want to use it. It contains those lines:
+2. Compile the project, or modify the executable flash_it.sh if you want to use it. It contains those lines:
 
 ```
 // build in nightly
