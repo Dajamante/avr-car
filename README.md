@@ -12,7 +12,7 @@ The circuit diagram is below:
 
 - **If you are not used to/have no access to cheap electronic parts**: 🛍🛒 You can also order a kit from Banggood or Ebay. Just search _2WD obstacle avoiding robot kit_, there are many, many, many suppliers. Example: [Ebay UK](https://www.ebay.co.uk/itm/Smart-Car-Motor-Robot-Chassis-Ultrasonic-Module-Battery-Box-Kit-2WD-For-Arduino/174299467397?hash=item28950ece85:g:gy8AAOSwRh9e0P8z), [Banggood](https://www.banggood.com/Geekcreit-DIY-L298N-2WD-Ultrasonic-Smart-Tracking-Moteur-Robot-Car-Kit-for-Arduino-products-that-work-with-official-Arduino-boards-p-1155139.html?rmmds=search&cur_warehouse=CN)...
 - Also, there are great tutorials [on assembling those robots](https://www.youtube.com/watch?v=BH33F-Hi_2M&list=PLN9tittQZUlRJCdE17eORJ7ZGVhGnH77k&index=3)!
--
+
 - **If you love picking up electronics yourself**:
 - Arduino UNO or Nano, or any clone using ATmega328p
 - [Servo SG90](https://components101.com/servo-motor-basics-pinout-datasheet)
@@ -23,9 +23,10 @@ The circuit diagram is below:
 
 ## Get started:
 
-1. Install avrdude. It's the utility to write in the ROM(read only memory) or the EEPROM (electrically erasable programmable read-only memory) of AVR microcontrollers. atmega329p, on the arduino uno is from this familly.
+1. Install avrdude. It's the utility to write in the ROM(read only memory) or the EEPROM (electrically erasable programmable read-only memory) of AVR microcontrollers. atmega328p, on the arduino uno is from this familly.
+   When you'll run the file, the executable file will be in target/avr-atmega328p/debug/<name of the project>.elf
 
-2) Modify the executable flash_it.sh if you want to use it. It contains those lines:
+1) Modify the executable flash_it.sh if you want to use it. It contains those lines:
 
 ```
 // build in nightly
@@ -33,10 +34,10 @@ set -e cargo +nightly build
 
 
 // burn on the board
-avrdude -p atmega328p -c arduino -P /dev/tty.usbserial-14430 -U flash:w:target/avr-atmega328p/debug/avr-example.elf:e
+avrdude -p atmega328p -c arduino -P /dev/tty.<your usb> -U flash:w:target/avr-atmega328p/debug/<name of the project>.elf:e
 
 // can be removed, used to check the console on mac.
-screen /dev/tty.usbserial-14430 57600
+screen /dev/tty.<your usb> 57600
 ```
 
 ### Details:
