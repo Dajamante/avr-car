@@ -1,3 +1,7 @@
+# Rusty Car has been at RustFest 2020 🐯 :car: 🎸 !!
+[Check the presentation and the amazing music video at 23:00 !](https://www.youtube.com/watch?v=K2n3uS5BAR8&list=PL85XCvVPmGQiudPknCxiSpybc5RTfkXe6)
+Music by [@llogiq](https://twitter.com/llogiq?lang=en)
+
 ## Robot car with ATmega328p (Arduino chip), made with :package: avr-hal
 
 Working with Rahix's avr-hal to make a little robot :car:🐯 with 📡.
@@ -7,6 +11,7 @@ The circuit diagram is below:
 <div>
 <img src="rustyrobot.jpg" width="400" />
   </div>
+  
 
 ## Stuff:
 
